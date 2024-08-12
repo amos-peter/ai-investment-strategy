@@ -5,7 +5,6 @@ import os
 from datetime import datetime, timedelta
 import altair as alt
 import numpy as np
-import IPython
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 # Define the function to show portfolio factsheet
