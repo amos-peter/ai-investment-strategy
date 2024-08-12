@@ -1,0 +1,6 @@
+streamlit
+quantstats
+pandas
+numpy
+scikit-learn
+altair
