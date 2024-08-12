@@ -1,46 +1,11 @@
+import quantstats as qs
 import streamlit as st
 import pandas as pd
 import os
 from datetime import datetime, timedelta
-import quantstats as qs
+import altair as alt
 import numpy as np
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-import altair as alt
-
-@st.cache_data
-def load_portfolio_return(file_path):
-    portfolio_return = pd.read_csv(file_path).set_index('date')
-    portfolio_return.index = pd.to_datetime(portfolio_return.index)
-    return portfolio_return
-
-@st.cache_data
-def load_data(file_path):
-    data = pd.read_csv(file_path).set_index('date')
-    data.index = pd.to_datetime(data.index)
-    return data
-
-@st.cache_data
-def calculate_sim_stat(df):
-    final_stat_df = pd.DataFrame()
-    for col in df.columns:
-        row_df = len(df[col].dropna())
-        stat_df = qs.reports.metrics(df[col], mode='full', display=False)
-        stat_df.columns = [col]
-        stat_df.index = stat_df.index.str.strip().str.lower()
-        stat_df.index = stat_df.index.str.strip()
-        if row_df < 252:
-            stat_list = ['start period', 'end period', 'cumulative return', 'sharpe', 'sortino']
-            percentage_columns = ['cumulative return']
-        else:
-            stat_list = ['start period', 'end period', 'cumulative return', 'all-time (ann.)', 'sharpe', 'sortino']
-            percentage_columns = ['cumulative return', 'all-time (ann.)']
-        stat_df = stat_df[stat_df.index.isin(stat_list)]
-        
-        for col in percentage_columns:
-            stat_df.loc[col] = round(stat_df.loc[col].astype(float)*100,3)
-        stat_df = stat_df.rename(index={'cumulative return': 'cumulative return (%)', 'all-time (ann.)': 'annualized return (%)'})
-        final_stat_df = pd.concat([final_stat_df, stat_df], axis=1)
-    return final_stat_df
 
 # Define the function to show portfolio factsheet
 def show_portfolio_factsheet():
@@ -49,7 +14,8 @@ def show_portfolio_factsheet():
     file_path = os.path.join(model_data_path, 'combine_sim_rtn.csv')
 
     # Load the portfolio return data
-    portfolio_return = load_portfolio_return(file_path)
+    portfolio_return = pd.read_csv(file_path).set_index('date')
+    portfolio_return.index = pd.to_datetime(portfolio_return.index)
 
     # Function to filter data based on year window
     def filter_by_year_window(df, window):
@@ -61,6 +27,63 @@ def show_portfolio_factsheet():
             years_ago = datetime.now() - timedelta(days=365 * int(window))
             filtered_df = df[df.index >= years_ago]
         return filtered_df
+
+    # Function to compute cumulative returns and normalize to a base value of 100
+    def compute_cumulative_returns(df):
+        cumulative_returns = (1 + df).cumprod()
+        return (cumulative_returns / cumulative_returns.iloc[0]) * 100
+
+    # Function to calculate financial metrics using quantstats
+    def calculate_sim_stat(df):
+        final_stat_df = pd.DataFrame()
+        for col in df.columns:
+            row_df = len(df[col].dropna())
+            # Calculate all stat
+            stat_df = qs.reports.metrics(df[col], mode='full', display=False)
+            stat_df.columns = [col]
+            stat_df.index = stat_df.index.str.strip().str.lower()
+            stat_df.index = stat_df.index.str.strip()
+            if row_df < 252:
+                stat_list = ['start period', 'end period', 'cumulative return', 'sharpe', 'sortino']
+                percentage_columns = ['cumulative return']
+            else:
+                stat_list = ['start period', 'end period', 'cumulative return', 'all-time (ann.)', 'sharpe', 'sortino']
+                percentage_columns = ['cumulative return', 'all-time (ann.)']
+            stat_df = stat_df[stat_df.index.isin(stat_list)]
+            
+            for col in percentage_columns:
+                stat_df.loc[col] = round(stat_df.loc[col].astype(float)*100,3)
+            stat_df = stat_df.rename(index={'cumulative return': 'cumulative return (%)', 'all-time (ann.)': 'annualized return (%)'})
+            final_stat_df = pd.concat([final_stat_df, stat_df], axis=1)
+        return final_stat_df
+
+    # Function to preprocess model data
+    def preprocess_data(get_model, get_asset_col):
+        model_df = pd.read_csv(os.path.join(model_data_path, f'{get_model}.csv')).set_index('date')
+        model_df.index = pd.to_datetime(model_df.index)
+        model_score_df = model_df.copy()
+        model_score_df.columns = get_asset_col
+        return model_score_df
+
+    # Function to evaluate model
+    def evaluate_model(model_df, target_df, sim_targets, real_targets):
+        sim_comparison_df = pd.concat([model_df, target_df], axis=1)
+        metrics = {}
+        for sim_target, real_target in zip(sim_targets, real_targets):
+            y_true = sim_comparison_df[real_target].dropna()
+            y_pred = sim_comparison_df[sim_target].dropna()
+
+            common_idx = y_true.index.intersection(y_pred.index)
+            y_true = y_true.loc[common_idx]
+            y_pred = y_pred.loc[common_idx]
+
+            mse = mean_squared_error(y_true, y_pred)
+            rmse = np.sqrt(mse)
+            mae = mean_absolute_error(y_true, y_pred)
+            r2 = r2_score(y_true, y_pred)
+            metrics[sim_target] = {'mse': mse, 'rmse': rmse, 'mae': mae, 'r_square': r2}
+
+        return pd.DataFrame(metrics).T
 
     # Streamlit layout
     st.title("Portfolio Backtesting/Simulation")
@@ -77,10 +100,12 @@ def show_portfolio_factsheet():
     overall_sim_stats = calculate_sim_stat(filtered_df)
 
     # Load and preprocess data for regression metrics
-    data_df = load_data(os.path.join(model_data_path, 'data_regime.csv'))
+    data_df = pd.read_csv(os.path.join(model_data_path, 'data_regime.csv')).set_index('date')
+    data_df.index = pd.to_datetime(data_df.index)
 
     get_target = [col for col in data_df.columns if "_22d_fwd_target" in col]
-    raw_df = load_data(os.path.join(model_data_path, 'raw_pricing.csv'))
+    raw_df = pd.read_csv(os.path.join(model_data_path, 'raw_pricing.csv')).set_index('date')
+    raw_df.index = pd.to_datetime(raw_df.index)
 
     asset_ls = raw_df.columns.tolist()
     pricing_df = raw_df[asset_ls].copy()
@@ -106,7 +131,7 @@ def show_portfolio_factsheet():
 
     # Top container layout
     st.header("Portfolio Overview")
-    col1, col2 = st.columns([1, 3])
+    col1, col2 = st.columns([1, 3])  # Adjust the ratio to make the right column wider
 
     with col1:
         st.subheader("Details")
@@ -164,5 +189,6 @@ def show_portfolio_factsheet():
         st.write("Support Vector Regression")
         st.write(overall_ml_svr)
 
+# Run the app
 if __name__ == "__main__":
     show_portfolio_factsheet()
