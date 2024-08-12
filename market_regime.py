@@ -1,11 +1,10 @@
-import subprocess
-import sys
 import quantstats as qs
 import streamlit as st
 import pandas as pd
 import os
 import numpy as np
 import altair as alt
+import IPython
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 # Function to show market regime performances
