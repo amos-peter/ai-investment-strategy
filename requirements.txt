@@ -1,7 +1,7 @@
 streamlit
 quantstats
 pandas
-numpy==1.23.5
+numpy==1.26
 scikit-learn
 altair
 ipython
