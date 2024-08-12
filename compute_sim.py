@@ -4,6 +4,7 @@ import os
 import pickle
 from datetime import datetime, timedelta
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+import numpy as np
 
 # Define paths
 model_data_path = 'model_data'

@@ -21,7 +21,9 @@ def show_portfolio_factsheet():
     # Load precomputed data based on the selected window
     cumulative_returns = precomputed_data[selected_window]['cumulative_returns']
     financial_metrics = precomputed_data[selected_window]['financial_metrics']
-    regression_metrics = precomputed_data[selected_window]['regression_metrics']
+
+    # Check if regression_metrics exist for the selected window
+    regression_metrics = precomputed_data[selected_window].get('regression_metrics', None)
 
     # Top container layout
     st.header("Portfolio Overview")
@@ -53,36 +55,40 @@ def show_portfolio_factsheet():
     st.subheader("Financial Metrics")
     st.write(financial_metrics)
 
-    st.subheader("Regression Metrics")
+    if regression_metrics is not None:
+        st.subheader("Regression Metrics")
 
-    # Divide regression metrics into rows
-    row1_col1, row1_col2, row1_col3 = st.columns(3)
-    row2_col1, row2_col2, row2_col3 = st.columns(3)
+        # Divide regression metrics into rows
+        row1_col1, row1_col2, row1_col3 = st.columns(3)
+        row2_col1, row2_col2, row2_col3 = st.columns(3)
 
-    with row1_col1:
-        st.write("GAN - Neural Network")
-        st.write(regression_metrics['gan_nn'])
+        with row1_col1:
+            st.write("GAN - Neural Network")
+            st.write(regression_metrics['gan_nn'])
 
-    with row1_col2:
-        st.write("GAN - LSTM")
-        st.write(regression_metrics['gan_lstm'])
+        with row1_col2:
+            st.write("GAN - LSTM")
+            st.write(regression_metrics['gan_lstm'])
 
-    with row1_col3:
-        st.write("GAN - TCN")
-        st.write(regression_metrics['gan_tcn'])
+        with row1_col3:
+            st.write("GAN - TCN")
+            st.write(regression_metrics['gan_tcn'])
 
-    with row2_col1:
-        st.write("Gradient Boosting")
-        st.write(regression_metrics['ml_gb'])
+        with row2_col1:
+            st.write("Gradient Boosting")
+            st.write(regression_metrics['ml_gb'])
 
-    with row2_col2:
-        st.write("Random Forest")
-        st.write(regression_metrics['ml_rf'])
+        with row2_col2:
+            st.write("Random Forest")
+            st.write(regression_metrics['ml_rf'])
 
-    with row2_col3:
-        st.write("Support Vector Regression")
-        st.write(regression_metrics['ml_svr'])
+        with row2_col3:
+            st.write("Support Vector Regression")
+            st.write(regression_metrics['ml_svr'])
+    else:
+        st.warning("Regression metrics are not available for the selected window.")
 
 # Run the app
 if __name__ == "__main__":
     show_portfolio_factsheet()
+
