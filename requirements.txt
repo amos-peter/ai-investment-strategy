@@ -1,7 +1,7 @@
 streamlit
+ipython==8.15.0
 quantstats
 pandas
 numpy
 scikit-learn
 altair
-ipython
