@@ -133,7 +133,7 @@ def show_model_comparison():
         ])
 
     # Overheating Regime
-    st.write("### Overheating Regime")
+    st.write("### Stagflation Regime")
     col1, col2 = st.columns(2)
     
     with col1:

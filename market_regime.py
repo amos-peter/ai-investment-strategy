@@ -88,7 +88,7 @@ def show_market_regime():
 
     # Regime Definitions - one sentence
     st.write(
-        "The regimes are defined as Warming (high inflation, high growth), Perfection (low inflation, high growth), Cooling (low inflation, low growth), and Overheating (high inflation, low growth)."
+        "The regimes are defined as Warming (high inflation, high growth), Perfection (low inflation, high growth), Cooling (low inflation, low growth), and Stagflation (high inflation, low growth)."
     )
 
     get_target = [col for col in data_df.columns if "_22d_fwd_target" in col]
@@ -109,7 +109,7 @@ def show_market_regime():
         "Warming Market Condition",
         "Perfection Market Condition",
         "Cooling Market Condition",
-        "Overheating Market Condition"
+        "Stagflation Market Condition"
     ]
 
     for regime in range(4):
