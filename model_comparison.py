@@ -8,7 +8,7 @@ def show_model_comparison():
         "One-way analyses of variance (ANOVA) are used to determine the significant differences between the groups considering GANs Models,"
         "and traditional ML Models in terms of regression and financial performance metrics. A confidence level of 95% (α value = 0.05) was used."
         "The mean differences in the significant values were calculated as group 2 – group 1, where group 1 will be GANS models except for"
-        "comparison with 60/40 portfolio as it will be in group 1 while GANS portfolio in group 2"
+        "comparison with 60/40 portfolio as 60/40 portfolio will be in group 1 while GANS portfolio in group 2."
     )
     st.subheader("Overall Comparison")
     col1, col2 = st.columns(2)
