@@ -7,6 +7,8 @@ def show_model_comparison():
     st.write(
         "One-way analyses of variance (ANOVA) are used to determine the significant differences between the groups considering GANs Models,"
         "and traditional ML Models in terms of regression and financial performance metrics. A confidence level of 95% (α value = 0.05) was used."
+        "The mean differences in the significant values were calculated as group 2 – group 1, where group 1 will be GANS models except for"
+        "comparison with 60/40 portfolio as it will be in group 1 while GANS portfolio in group 2"
     )
     st.subheader("Overall Comparison")
     col1, col2 = st.columns(2)
@@ -33,9 +35,9 @@ def show_model_comparison():
         st.write("#### Financial Metrics")
         st.table([
             ["GAN Portfolio", "60/40 Portfolio", "ML_GB Portfolio", "ML_RF Portfolio", "ML_SVR Portfolio"],
-            ["GAN_LSTM", "2.793 (High)", "1.454 (High)", "0.522 (High)", "0.381 (Medium)"],
-            ["GAN_NN", "2.860 (High)", "1.521 (High)", "0.590 (High)", "0.453 (High)"],
-            ["GAN_TCN", "2.912 (High)", "1.573 (High)", "0.642 (High)", "0.505 (Medium)"]
+            ["GAN_LSTM", "2.793 (High)", "-1.454 (High)", "-0.522 (High)", "-0.381 (Medium)"],
+            ["GAN_NN", "2.860 (High)", "-1.521 (High)", "-0.590 (High)", "-0.453 (High)"],
+            ["GAN_TCN", "2.912 (High)", "-1.573 (High)", "-0.642 (High)", "-0.505 (Medium)"]
         ])
 
     st.subheader("Market Regime Comparison")
